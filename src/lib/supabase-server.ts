@@ -13,10 +13,18 @@ export function createServerSupabaseClient() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: { path: string; maxAge: number }) {
-          cookieStore.set(name, value, options);
+          try {
+            cookieStore.set(name, value, options);
+          } catch {
+            // Cookies can only be modified in a Server Action or Route Handler
+          }
         },
         remove(name: string, options: { path: string }) {
-          cookieStore.set(name, "", { ...options, maxAge: 0 });
+          try {
+            cookieStore.set(name, "", { ...options, maxAge: 0 });
+          } catch {
+            // Cookies can only be modified in a Server Action or Route Handler
+          }
         },
       },
     }
