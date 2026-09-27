@@ -54,14 +54,22 @@ This is the Care Practice Studio Engagement Platform, an internal tool for runni
 - [x] Admin projects page — all projects with full metrics table
 - [x] Admin access controlled by ADMIN_EMAIL env var + middleware
 
-### Phase 5: Verification & Deployment — PENDING
-- [ ] Install dependencies and verify build compiles
-- [ ] User provides Supabase credentials
-- [ ] Database migration applied to Supabase
-- [ ] Environment variables configured
-- [ ] Build passes with no errors
-- [ ] Deploy to Vercel
-- [ ] Cloudflare DNS CNAME record for platform.carepracticestudio.com
+### Phase 5: Verification & Deployment — IN PROGRESS
+- [x] Install dependencies and verify build compiles
+- [x] User provides Supabase credentials
+- [x] Database migration applied to Supabase (001_initial schema)
+- [x] Environment variables configured
+- [x] Build passes with no errors
+- [x] Deploy to Vercel
+- [x] Cloudflare DNS CNAME record for platform.carepracticestudio.com
+- [x] SSL certificate provisioned
+- [x] Brand identity applied (emerald colors, Lato + Playfair Display)
+- [x] Admin management pages (Manage Admins, Create Client)
+- [x] Forced password change flow for new clients
+- [x] Committed and pushed to git
+- [ ] Migration 002 (admins table) applied
+- [ ] Migration 003 (must_change_password) applied
+- [ ] Test data inserted (Brian Fallon client, projects, tasks, comments)
 - [ ] Verify all success criteria (see below)
 
 ## Success Criteria Verification Checklist
@@ -89,3 +97,7 @@ When reviewing, check against REQUIREMENTS.md's Success Criteria section item by
 - Key learning: RLS policies on Supabase require careful attention to the auth.jwt() claims — email must be available in the JWT for client identification
 - Key learning: The de-identified view should be created in the initial migration, not added later, to satisfy the success criteria
 - Key learning: Task-level comment threads require a separate comments table with task_id FK, not a project-level comments field
+- Key learning: When providing SQL to users, always include LIMIT 1 in subqueries to prevent "more than one row" errors from duplicate data
+- Key learning: Test for CHECK constraint violations before providing INSERT statements — verify allowed enum values match the data being inserted
+- Key learning: When users run SQL manually, provide queries one at a time rather than as a single batch to make debugging easier
+- Key learning: Duplicate data is a common issue when users run INSERT statements multiple times after failures — always provide cleanup/fix SQL alongside the original

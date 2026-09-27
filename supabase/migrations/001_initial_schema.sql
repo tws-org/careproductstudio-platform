@@ -26,7 +26,7 @@ CREATE TABLE projects (
   client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'on_hold', 'completed', 'cancelled')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'on_hold', 'completed', 'cancelled', 'pending')),
   start_date DATE,
   target_end_date DATE,
   actual_end_date DATE,
