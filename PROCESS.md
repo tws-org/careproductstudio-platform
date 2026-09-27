@@ -99,5 +99,12 @@ When reviewing, check against REQUIREMENTS.md's Success Criteria section item by
 - Key learning: Task-level comment threads require a separate comments table with task_id FK, not a project-level comments field
 - Key learning: When providing SQL to users, always include LIMIT 1 in subqueries to prevent "more than one row" errors from duplicate data
 - Key learning: Test for CHECK constraint violations before providing INSERT statements — verify allowed enum values match the data being inserted
-- Key learning: When users run SQL manually, provide queries one at a time rather than as a single batch to make debugging easier
+- Key learning: When users run SQL manually, provide queries one at a time rather as a single batch to make debugging easier
 - Key learning: Duplicate data is a common issue when users run INSERT statements multiple times after failures — always provide cleanup/fix SQL alongside the original
+- Key learning: MIN() does not work on UUID columns in Postgres — use DISTINCT ON with ORDER BY instead
+- Key learning: When subqueries return no results, fall back to direct UUID-based INSERTs with step-by-step diagnostic queries
+- Key learning: Duplicate cleanup queries can accidentally delete all rows instead of keeping one — always verify with a SELECT before running DELETE
+- Key learning: When a subquery-based INSERT fails, break it into smaller steps: first SELECT the IDs, then INSERT using those IDs directly
+- Key learning: Always verify that referenced data exists before writing INSERT statements with foreign key dependencies
+- Key learning: When a subquery-based INSERT fails, break it into smaller steps: first SELECT the IDs, then INSERT using those IDs directly
+- Key learning: Always verify that referenced data exists before writing INSERT statements with foreign key dependencies
