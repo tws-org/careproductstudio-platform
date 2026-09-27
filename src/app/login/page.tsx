@@ -49,7 +49,21 @@ export default function LoginPage() {
       return;
     }
 
+    // Check if client must change password
+    const { data: client } = await supabase
+      .from("clients")
+      .select("must_change_password")
+      .eq("email", email)
+      .single();
+
     setLoading(false);
+
+    if (client?.must_change_password) {
+      router.push("/change-password");
+      router.refresh();
+      return;
+    }
+
     router.push(role === "admin" ? "/admin" : "/client");
     router.refresh();
   }

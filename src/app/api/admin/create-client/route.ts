@@ -37,12 +37,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: authError.message }, { status: 500 });
   }
 
-  // Create client record
+  // Create client record with must_change_password = true
   const { error: clientError } = await supabase.from("clients").insert({
     name,
     email,
     waiver_signed: false,
     waiver_signed_at: null,
+    must_change_password: true,
   });
 
   if (clientError) {
