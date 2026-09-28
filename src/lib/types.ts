@@ -53,7 +53,7 @@ export interface Message {
   body_html: string | null;
   message_id: string | null;
   in_reply_to: string | null;
-  references: string[];
+  reference_ids: string[];
   thread_id: string | null;
   is_read: boolean;
   created_at: string;

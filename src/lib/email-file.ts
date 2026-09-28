@@ -119,7 +119,7 @@ export async function fileInboundMessage(
       body_html: input.bodyHtml,
       message_id: input.messageId,
       in_reply_to: input.inReplyTo,
-      references: input.references,
+      reference_ids: input.references,
       thread_id: threadId,
       is_read: false,
     })

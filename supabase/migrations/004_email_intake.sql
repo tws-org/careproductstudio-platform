@@ -33,7 +33,7 @@ CREATE TABLE messages (
   body_html TEXT,
   message_id TEXT,
   in_reply_to TEXT,
-  references TEXT[] NOT NULL DEFAULT '{}',
+  reference_ids TEXT[] NOT NULL DEFAULT '{}',
   thread_id TEXT,
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
