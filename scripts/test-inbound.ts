@@ -88,21 +88,33 @@ async function dbDelete(table: string, query: string): Promise<void> {
 async function sendWebhook(payload: object): Promise<any> {
   const body = JSON.stringify(payload);
   const signature = createHmac("sha256", SECRET).update(body).digest("hex");
-  const res = await fetch(WEBHOOK_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Webhook-Signature": `sha256=${signature}`,
-    },
-  });
-  const text = await res.text();
-  let json: any = null;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    /* non-JSON */
+
+  // Retry briefly: a fresh Vercel deployment can take a few minutes to
+  // propagate to every edge node, and stale nodes still run the old
+  // env vars (which fail signature verification).
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const res = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Webhook-Signature": `sha256=${signature}`,
+      },
+      body,
+    });
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      /* non-JSON */
+    }
+    if (!(res.status === 401 && json?.error === "Invalid signature")) {
+      return { status: res.status, body: json, text };
+    }
+    console.log(`  (edge node still on old deploy — retry ${attempt}/4)`);
+    await new Promise((r) => setTimeout(r, 5000));
   }
-  return { status: res.status, body: json, text };
+  return { status: 401, body: { error: "Invalid signature" }, text: "" };
 }
 
 function emailPayload(overrides: Record<string, unknown>): any {
@@ -292,12 +304,13 @@ async function main() {
   // Verify the file is actually in storage and downloadable
   if (doc7[0]?.storage_path) {
     const obj = await fetch(
-      `${SUPABASE_URL}/storage/v1/object/${doc7[0].storage_path}`,
+      `${SUPABASE_URL}/storage/v1/object/documents/${doc7[0].storage_path}`,
       { headers: headers() }
     );
     check(
       "file exists in storage with correct content",
-      obj.ok && (await obj.text()) === "hello world"
+      obj.ok && (await obj.text()) === "hello world",
+      `status=${obj.status}`
     );
   }
 
@@ -321,8 +334,11 @@ async function main() {
   check("no storage_path for rejected file", !doc8[0]?.storage_path);
 
   // --- 9. Oversized attachment → rejected ---
-  console.log("\n== 9. Oversized attachment (5 MB) → rejected ==");
-  const big = Buffer.alloc(5 * 1024 * 1024, "a");
+  // 3.1 MB: over the 3 MB attachment limit, but small enough to fit under
+  // Vercel's 4.5 MB request-body limit (larger files are skipped by the
+  // worker before they ever reach the webhook — see EMAIL_INTAKE.md).
+  console.log("\n== 9. Oversized attachment (3.1 MB) → rejected ==");
+  const big = Buffer.alloc(3.1 * 1024 * 1024, "a");
   const p9 = emailPayload({
     attachments: [
       {
@@ -334,10 +350,16 @@ async function main() {
     ],
   });
   const r9 = await sendWebhook(p9);
-  const doc9 = await dbSelect<any>("documents", `select=*&message_id=eq.${r9.body?.message_id}`);
-  check("oversized document row exists", doc9.length === 1);
-  check("scan_status=rejected", doc9[0]?.scan_status === "rejected");
-  check("reason mentions size limit", (doc9[0]?.rejection_reason || "").includes("maximum attachment size"));
+  // The message itself files fine; only the oversized attachment is rejected.
+  check("oversized → message still filed", r9.body?.filed === true, JSON.stringify(r9.body));
+  if (!r9.body?.message_id) {
+    check("oversized document row exists", false, "message was not filed");
+  } else {
+    const doc9 = await dbSelect<any>("documents", `select=*&message_id=eq.${r9.body.message_id}`);
+    check("oversized document row exists", doc9.length === 1);
+    check("scan_status=rejected", doc9[0]?.scan_status === "rejected");
+    check("reason mentions size limit", (doc9[0]?.rejection_reason || "").includes("maximum attachment size"));
+  }
 
   // --- 10. EICAR malware file → quarantined ---
   console.log("\n== 10. EICAR test file → quarantined ==");
@@ -380,14 +402,29 @@ async function main() {
   const reSanitized = sanitizeEmailHtml(msg11[0]?.body_html || "");
   check("stored body renders without script execution", !/<script/i.test(reSanitized));
 
+  // --- 11b. Idempotency: same payload twice → filed once ---
+  console.log("\n== 11b. Duplicate delivery (same Message-ID) → filed once ==");
+  const p11b = emailPayload({});
+  const r11b1 = await sendWebhook(p11b);
+  const r11b2 = await sendWebhook(p11b); // identical payload, same Message-ID
+  check("first delivery filed", r11b1.body?.filed === true, JSON.stringify(r11b1.body));
+  check("second delivery returns same message", r11b2.body?.message_id === r11b1.body?.message_id, JSON.stringify(r11b2.body));
+  const dupes = await dbSelect<any>(
+    "messages",
+    `select=id&client_id=eq.${clientA}&message_id=eq.${encodeURIComponent(p11b.headers["message-id"])}`
+  );
+  check("only one message row for that Message-ID", dupes.length === 1, `got ${dupes.length}`);
+
   // --- 12. Unread state (DB level; API verified in browser demo) ---
   console.log("\n== 12. Unread messages counted ==");
   const unread = await dbSelect<any>(
     "messages",
     `select=id&client_id=eq.${clientA}&is_read=eq.false&direction=eq.inbound`
   );
-  // Scenarios 1, 2, 7, 11 filed messages to client A (4 unread)
-  check("4 unread messages on client A", unread.length === 4, `got ${unread.length}`);
+  // Scenarios 1, 2, 7, 8, 9, 10, 11, 11b each file a message to client A
+  // (rejected/quarantined attachments don't prevent the message itself filing;
+  // 11b's duplicate delivery files nothing new)
+  check("8 unread messages on client A", unread.length === 8, `got ${unread.length}`);
 
   // --- 13. HMAC rejection ---
   console.log("\n== 13. Unsigned request rejected ==");

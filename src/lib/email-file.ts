@@ -91,6 +91,30 @@ export async function fileInboundMessage(
 ): Promise<FileMessageResult> {
   const supabase = createAdminSupabaseClient();
 
+  // --- Idempotency: the worker (or a network blip) can deliver the same
+  //     message twice. If a message with this Message-ID was already filed
+  //     for this client, return it instead of filing a duplicate. ---
+  if (input.messageId) {
+    const { data: existing } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("client_id", input.clientId)
+      .eq("message_id", input.messageId)
+      .maybeSingle();
+    if (existing) {
+      const { data: message } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("id", existing.id)
+        .single();
+      const { data: documents } = await supabase
+        .from("documents")
+        .select("*")
+        .eq("message_id", existing.id);
+      return { message: message as Message, documents: (documents || []) as Document[] };
+    }
+  }
+
   // --- Thread resolution: adopt the thread of any referenced message ---
   let threadId = input.messageId;
   const refIds = [input.inReplyTo, ...input.references].filter(
