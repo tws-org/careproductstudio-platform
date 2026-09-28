@@ -409,9 +409,10 @@ async function main() {
   const r11b2 = await sendWebhook(p11b); // identical payload, same Message-ID
   check("first delivery filed", r11b1.body?.filed === true, JSON.stringify(r11b1.body));
   check("second delivery returns same message", r11b2.body?.message_id === r11b1.body?.message_id, JSON.stringify(r11b2.body));
+  const bareId = p11b.headers["message-id"].replace(/^<|>$/g, "");
   const dupes = await dbSelect<any>(
     "messages",
-    `select=id&client_id=eq.${clientA}&message_id=eq.${encodeURIComponent(p11b.headers["message-id"])}`
+    `select=id&client_id=eq.${clientA}&message_id=eq.${encodeURIComponent(bareId)}`
   );
   check("only one message row for that Message-ID", dupes.length === 1, `got ${dupes.length}`);
 
