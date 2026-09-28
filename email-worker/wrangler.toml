@@ -1,0 +1,20 @@
+name = "cps-email-intake"
+main = "src/index.ts"
+compatibility_date = "2026-09-27"
+
+# Creates/manages the Email Routing rule:
+#   request@carepracticestudio.com  →  Send to this Worker
+# (Deploys with `wrangler deploy`. The rule is managed by this file —
+#  editing the dashboard rule will detach it; see EMAIL_INTAKE.md.)
+addresses = ["request@carepracticestudio.com"]
+
+# Email routing: handle inbound mail with the email() handler.
+email = [{ name = "EMAIL_HANDLER" }]
+
+# Secrets (set with `wrangler secret put <NAME>`):
+#   INBOUND_WEBHOOK_URL      — https://platform.carepracticestudio.com/api/email/inbound
+#   INBOUND_WEBHOOK_SECRET   — same value as EMAIL_WEBHOOK_SECRET in Vercel
+#   FORWARD_TO               — Peter's inbox (the verified Email Routing destination)
+# Vars (non-secret configuration):
+[vars]
+MAX_ATTACHMENT_MB = "3"

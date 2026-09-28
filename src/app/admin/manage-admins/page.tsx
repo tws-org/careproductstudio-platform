@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 export default async function ManageAdminsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!user.isAdmin) redirect("/unauthorized");
 
-  const supabase = createServerSupabaseClient();
+  const supabase = createAdminSupabaseClient();
 
   // Get current admins list
   const { data: admins } = await supabase

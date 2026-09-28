@@ -1,8 +1,8 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const supabase = createServerSupabaseClient();
+  const supabase = createAdminSupabaseClient();
 
   // Check if current user is admin
   const {

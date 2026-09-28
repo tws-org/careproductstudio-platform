@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { Client } from "@/lib/types";
 
 export default async function AdminClientsPage() {
@@ -8,7 +8,7 @@ export default async function AdminClientsPage() {
   if (!user) redirect("/login");
   if (!user.isAdmin) redirect("/unauthorized");
 
-  const supabase = createServerSupabaseClient();
+  const supabase = createAdminSupabaseClient();
 
   const { data: clients } = await supabase
     .from("clients")

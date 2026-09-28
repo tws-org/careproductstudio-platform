@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import Link from "next/link";
 import SignOutButton from "@/components/SignOutButton";
+import Notifications from "@/components/Notifications";
 
 export default async function AdminLayout({
   children,
@@ -40,6 +41,7 @@ export default async function AdminLayout({
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <Notifications />
             <span className="text-sm text-gray-500">{user.email}</span>
             <SignOutButton />
           </div>
