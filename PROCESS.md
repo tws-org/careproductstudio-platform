@@ -67,10 +67,25 @@ This is the Care Practice Studio Engagement Platform, an internal tool for runni
 - [x] Admin management pages (Manage Admins, Create Client)
 - [x] Forced password change flow for new clients
 - [x] Committed and pushed to git
-- [ ] Migration 002 (admins table) applied
-- [ ] Migration 003 (must_change_password) applied
+- [x] Migration 002 (admins table) applied
+- [x] Migration 003 (must_change_password) applied
+- [x] Migration 004 (email intake) applied
 - [ ] Test data inserted (Brian Fallon client, projects, tasks, comments)
 - [ ] Verify all success criteria (see below)
+
+### Phase 6: Slice A — Email Intake — CODE COMPLETE, REAL-EMAIL TESTS PENDING
+- [x] Migration 004: client_email_addresses, messages, review_queue, documents + RLS
+- [x] Inbound webhook (/api/email/inbound) with HMAC auth, sender verification, review queue
+- [x] Threading via In-Reply-To/References; idempotent filing (dedupe by Message-ID)
+- [x] Admin header notification (unread count, dropdown, mark-read, client page)
+- [x] Attachment pipeline: size limit, type allowlist, malware scan (EICAR fix), quarantine
+- [x] Safe HTML rendering (sanitize-html: no scripts, no remote content)
+- [x] Review queue UI (list, detail, file-to-client, discard)
+- [x] Cloudflare Email Worker code (email-worker/) — forwards to Peter's inbox + POSTs to platform
+- [x] Automated test suite: 49 scenarios, all passing (scripts/test-inbound.ts)
+- [x] Fixed pre-existing RLS bug: admin pages used anon key (switched to service-role client)
+- [ ] Real-email tests (needs worker deployed): request@ → inbox + platform; help@ still forwards
+- [ ] Browser demo of notification bell with a real message
 
 ## Success Criteria Verification Checklist
 

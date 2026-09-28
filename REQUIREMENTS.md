@@ -127,14 +127,14 @@ Supabase and Vercel were chosen deliberately, but avoid deepening lock-in beyond
 
 ### Slice A — Inbound
 
-- [ ] An email sent to request@carepracticestudio.com from a registered client address arrives in Peter's company inbox **and** appears in the platform under the correct client — demonstrated with a real test email.
-- [ ] `help@carepracticestudio.com` still forwards to Peter's inbox after the email changes — demonstrated with a real test email.
-- [ ] An email from an unregistered address, or one failing SPF/DKIM, lands in the review queue and is not filed to any client.
-- [ ] An email from a registered client whose waiver is **not** signed lands in the review queue, not the client record.
-- [ ] A reply to an existing thread is grouped into the same thread.
-- [ ] The header icon shows the correct unread count; the dropdown reads "New message from [sender email]"; clicking opens that client's page and clears the unread state.
-- [ ] An email with an attachment stores the file and lists it in the Documents section; a disallowed file type, an oversized file, and a test malware file (e.g. the EICAR test string) are each rejected or quarantined.
-- [ ] An email body containing script/HTML is displayed safely, with no script execution and no remote content loaded.
+- [ ] An email sent to request@carepracticestudio.com from a registered client address arrives in Peter's company inbox **and** appears in the platform under the correct client — demonstrated with a real test email. *(pending: worker deploy + real email)*
+- [ ] `help@carepracticestudio.com` still forwards to Peter's inbox after the email changes — demonstrated with a real test email. *(pending: real email)*
+- [x] An email from an unregistered address, or one failing SPF/DKIM, lands in the review queue and is not filed to any client. *(test suite scenarios 3–5)*
+- [x] An email from a registered client whose waiver is **not** signed lands in the review queue, not the client record. *(scenario 6)*
+- [x] A reply to an existing thread is grouped into the same thread. *(scenario 2)*
+- [ ] The header icon shows the correct unread count; the dropdown reads "New message from [sender email]"; clicking opens that client's page and clears the unread state. *(pending: browser demo with a real message)*
+- [x] An email with an attachment stores the file and lists it in the Documents section; a disallowed file type, an oversized file, and a test malware file (e.g. the EICAR test string) are each rejected or quarantined. *(scenarios 7–10)*
+- [x] An email body containing script/HTML is displayed safely, with no script execution and no remote content loaded. *(scenario 11)*
 
 ### Slice B — Admin canvas
 
