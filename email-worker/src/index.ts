@@ -23,7 +23,7 @@ interface Env {
 }
 
 const MAX_ATTACHMENT_BYTES = (env: Env) =>
-  (parseInt(env.MAX_ATTACHMENT_MB || "3", 10)) || 3) * 1024 * 1024;
+  ((parseInt(env.MAX_ATTACHMENT_MB || "3", 10)) || 3) * 1024 * 1024;
 
 export default {
   async email(message, env, ctx): Promise<void> {

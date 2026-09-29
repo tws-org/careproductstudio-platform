@@ -8,8 +8,8 @@ compatibility_date = "2026-09-27"
 #  editing the dashboard rule will detach it; see EMAIL_INTAKE.md.)
 addresses = ["request@carepracticestudio.com"]
 
-# Email routing: handle inbound mail with the email() handler.
-email = [{ name = "EMAIL_HANDLER" }]
+# The email() handler in src/index.ts is wired up automatically —
+# no "email" binding field is required in Wrangler 4.x.
 
 # Secrets (set with `wrangler secret put <NAME>`):
 #   INBOUND_WEBHOOK_URL      — https://platform.carepracticestudio.com/api/email/inbound
